@@ -66,3 +66,37 @@ def add_record_to_db(db, username, p_hash, user_type):
         f"INSERT INTO users (id, name, hash, user_type ) VALUES({new_uid}, '{username}', '{p_hash}', '{user_type}');"
     )
     db.commit()
+
+
+def add_file_to_db(db, file_name, file_path, uploader_id):
+    latest_UID = list(db.execute("SELECT count(file_id) FROM files;"))
+    print(f"latest ID is {latest_UID}")
+    new_uid = latest_UID[0][0] + 1
+    # record file data and location for later retrieval
+    db.execute(
+        f"INSERT INTO files (file_id, file_name, file_path, uploader_id ) VALUES({new_uid}, '{file_name}', '{file_path}', '{uploader_id}');"
+    )
+    #  record file to access list with user ID
+    db.execute(
+        f"INSERT INTO file_access (file_id, user_id) VALUES({new_uid}, {uploader_id});"
+    )
+    db.commit()
+
+
+def load_user_files(db, uid):
+    allowed_file_ids = list(
+        db.execute(f"SELECT file_id FROM file_access WHERE user_id={uid}")
+    )
+    allowed_file_ids = tuple([row[0] for row in allowed_file_ids])
+
+    print(allowed_file_ids)
+    if len(allowed_file_ids) > 1:
+        user_files = list(
+            db.execute(f"SELECT * FROM files WHERE file_id IN {allowed_file_ids}")
+        )
+    else:
+        user_files = list(
+            db.execute(f"SELECT * FROM files WHERE file_id={allowed_file_ids[0]}")
+        )
+    print(user_files)
+    return user_files

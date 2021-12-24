@@ -1,15 +1,29 @@
-import os
 import logging
-from flask import Flask, flash, redirect, render_template, request, session
-from flask_session import Session
-from werkzeug.utils import secure_filename
-from werkzeug.exceptions import default_exceptions, HTTPException, InternalServerError
-from werkzeug.security import check_password_hash, generate_password_hash
-from tempfile import mkdtemp
-from functools import wraps
+import os
+import re
 import sqlite3
+from functools import wraps
+from tempfile import mkdtemp
+
+from flask import (
+    Flask,
+    abort,
+    flash,
+    redirect,
+    render_template,
+    request,
+    safe_join,
+    send_file,
+    send_from_directory,
+    session,
+)
+from flask_session import Session
+from werkzeug.exceptions import HTTPException, InternalServerError, default_exceptions
+from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.utils import secure_filename
+
 import helpers
-from helpers import login_required
+from helpers import add_file_to_db, load_user_files, login_required
 
 # Configure application
 app = Flask(__name__)
@@ -36,7 +50,7 @@ def after_request(response):
     return response
 
 
-UPLOAD_FOLDER = "../uploads/"
+UPLOAD_FOLDER = f"{os.getcwd()}/uploads/"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 # Configure session to use filesystem (instead of signed cookies)
@@ -53,10 +67,36 @@ logger = logging.getLogger("werkzeug")  # grabs underlying WSGI logger
 @app.route("/", methods=["GET", "POST"])
 @login_required
 def dashboard():
-    uid = session["user_id"]
-    user = list(db.execute(f"SELECT * FROM users WHERE id = {uid}"))
-    username = user[0][1]
-    return render_template("index.html", username=username)
+    if request.method == "GET":
+        uid = session["user_id"]
+        user = list(db.execute(f"SELECT * FROM users WHERE id = {uid}"))
+        user_name = user[0][1]
+        users_files = load_user_files(db=db, uid=uid)
+        return render_template(
+            "index.html", user_name=user_name, users_files=users_files
+        )
+    else:
+        print(request.method)
+        print(request.values)
+        print(request.form.get("file_name"))
+        get_file(request.form.get("file_name"))
+        uid = session["user_id"]
+        user = list(db.execute(f"SELECT * FROM users WHERE id = {uid}"))
+        user_name = user[0][1]
+        users_files = load_user_files(db=db, uid=uid)
+        return render_template(
+            "index.html", user_name=user_name, users_files=users_files
+        )
+
+
+def get_file(file_name):
+
+    try:
+        return send_from_directory(
+            app.config["UPLOAD_FOLDER"], file_name, as_attachment=True
+        )
+    except FileNotFoundError:
+        abort(404)
 
 
 @app.route("/upload", methods=["GET", "POST"])
@@ -74,8 +114,18 @@ def upload_file():
             flash("No selected file")
             return redirect(request.url)
         if file and helpers.allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+            file_name = secure_filename(file.filename)
+            file_path = os.path.join(app.config["UPLOAD_FOLDER"], file_name)
+            file.save(file_path)
+            print(file_name)
+            uid = session["user_id"]
+            print(uid)
+            add_file_to_db(
+                db=db,
+                file_name=file_name,
+                uploader_id=session["user_id"],
+                file_path=file_path,
+            )
             return redirect("/")
     return render_template("upload.html")
 
@@ -112,7 +162,6 @@ def login():
         # Query database for username
         username = request.form.get("username")
         rows = list(db.execute(f"SELECT * FROM users WHERE name = '{username}'"))
-        print(rows)
 
         # Ensure username exists and password is correct
         pass_string = request.form.get("password")

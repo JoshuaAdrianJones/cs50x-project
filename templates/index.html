@@ -6,6 +6,29 @@
   <br />
   <h1>Upload new File</h1>
 
-  <h4>you are logged in as {{username}}</h4>
+  <h4>you are logged in as {{user_name}}</h4>
+
+  <h3>Available files</h3>
+  <table class="table">
+    <tr>
+      <th>File Name</th>
+      <th>download</th>
+      <th>manage users</th>
+    </tr>
+
+    {%- for file in users_files %}
+    <tr>
+      <td>{{file[1]}}</td>
+      <td>
+        <form method="post" enctype="multipart/form-data">
+          <input type="hidden" name="file_name" , value="{{file[1]}}" />
+          <input type="submit" value="Download" />
+        </form>
+      </td>
+
+      <td></td>
+    </tr>
+    {%- endfor %}
+  </table>
 </div>
 {% endblock %}
