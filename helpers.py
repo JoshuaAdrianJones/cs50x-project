@@ -59,9 +59,9 @@ def apology(message, code=400):
 
 def add_record_to_db(db, username, p_hash, user_type):
     latest_UID = list(db.execute("SELECT count(id) FROM users;"))
-    print(f"latest ID is {latest_UID}")
+
     new_uid = latest_UID[0][0] + 1
-    print(new_uid, username, p_hash, user_type)
+
     db.execute(
         f"INSERT INTO users (id, name, hash, user_type ) VALUES({new_uid}, '{username}', '{p_hash}', '{user_type}');"
     )
@@ -70,7 +70,7 @@ def add_record_to_db(db, username, p_hash, user_type):
 
 def add_file_to_db(db, file_name, file_path, uploader_id):
     latest_UID = list(db.execute("SELECT count(file_id) FROM files;"))
-    print(f"latest ID is {latest_UID}")
+
     new_uid = latest_UID[0][0] + 1
     # record file data and location for later retrieval
     db.execute(
@@ -89,7 +89,6 @@ def load_user_files(db, uid):
     )
     allowed_file_ids = tuple([row[0] for row in allowed_file_ids])
 
-    print(allowed_file_ids)
     if len(allowed_file_ids) > 1:
         user_files = list(
             db.execute(f"SELECT * FROM files WHERE file_id IN {allowed_file_ids}")
@@ -98,5 +97,5 @@ def load_user_files(db, uid):
         user_files = list(
             db.execute(f"SELECT * FROM files WHERE file_id={allowed_file_ids[0]}")
         )
-    print(user_files)
+
     return user_files

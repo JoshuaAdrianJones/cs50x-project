@@ -75,25 +75,14 @@ def dashboard():
         return render_template(
             "index.html", user_name=user_name, users_files=users_files
         )
-    else:
-        print(request.method)
-        print(request.values)
-        print(request.form.get("file_name"))
-        get_file(request.form.get("file_name"))
-        uid = session["user_id"]
-        user = list(db.execute(f"SELECT * FROM users WHERE id = {uid}"))
-        user_name = user[0][1]
-        users_files = load_user_files(db=db, uid=uid)
-        return render_template(
-            "index.html", user_name=user_name, users_files=users_files
-        )
 
 
-def get_file(file_name):
-
+@app.route("/download", methods=["GET", "POST"])
+def get_file():
     try:
+        file_name = request.form.get("file_name")
         return send_from_directory(
-            app.config["UPLOAD_FOLDER"], file_name, as_attachment=True
+            app.config["UPLOAD_FOLDER"], file_name, as_attachment=True, cache_timeout=0
         )
     except FileNotFoundError:
         abort(404)
@@ -117,9 +106,6 @@ def upload_file():
             file_name = secure_filename(file.filename)
             file_path = os.path.join(app.config["UPLOAD_FOLDER"], file_name)
             file.save(file_path)
-            print(file_name)
-            uid = session["user_id"]
-            print(uid)
             add_file_to_db(
                 db=db,
                 file_name=file_name,
