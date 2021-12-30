@@ -17,7 +17,7 @@
         <th>File Name</th>
         <th>Download</th>
         <th>Delete</th>
-        <th>Manage Users</th>
+        <th>Add Users</th>
       </tr>
 
       {%- for file in users_files %}
@@ -38,7 +38,17 @@
           </form>
         </td>
 
-        <td></td>
+        <td>
+          <form
+            method="post"
+            action="add_user_nav"
+            enctype="multipart/form-data"
+          >
+            <input type="hidden" name="file_name" , value="{{file[1]}}" />
+            <input type="hidden" name="file_id" , value="{{file[0]}}" />
+            <input type="submit" value="Add User" />
+          </form>
+        </td>
       </tr>
       {%- endfor %}
     </table>

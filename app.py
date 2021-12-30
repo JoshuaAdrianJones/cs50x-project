@@ -104,6 +104,34 @@ def delete_file():
     return redirect("/")
 
 
+@app.route("/add_user_nav", methods=["POST"])
+def add_user_nav():
+    file_id = request.form.get("file_id")
+    file_name = request.form.get("file_name")
+    available_users = list(db.execute(f"SELECT name FROM users"))
+    return render_template(
+        "add_user.html",
+        file_name=file_name,
+        file_id=file_id,
+        available_users=available_users,
+    )
+
+
+@app.route("/add_user_submit", methods=["POST"])
+def add_user():
+    user_to_add_to_file = request.form.get("selected")  # user_name
+    file_to_add_user_to = request.form.get("file_name")
+
+    #  add user to file association by adding a new record to the file_access table
+    user_id_to_add = list(
+        db.execute(f"SELECT id FROM users WHERE name='{user_to_add_to_file}'")
+    )[0][0]
+    # its a tuple :( )
+
+    helpers.add_user_file_association(db, file_to_add_user_to, user_id_to_add)
+    return redirect("/")
+
+
 @app.route("/upload", methods=["GET", "POST"])
 @login_required
 def upload_file():

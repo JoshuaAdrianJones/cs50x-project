@@ -77,8 +77,13 @@ def add_file_to_db(db, file_name, file_path, uploader_id):
         f"INSERT INTO files (file_id, file_name, file_path, uploader_id ) VALUES({new_uid}, '{file_name}', '{file_path}', '{uploader_id}');"
     )
     #  record file to access list with user ID
+    latest_UID_access = list(
+        db.execute("SELECT count(access_record_id) FROM file_access;")
+    )
+
+    new_uid_access = latest_UID_access[0][0] + 1
     db.execute(
-        f"INSERT INTO file_access (file_id, user_id) VALUES({new_uid}, {uploader_id});"
+        f"INSERT INTO file_access (access_record_id, file_id, user_id) VALUES({new_uid_access},{new_uid}, {uploader_id});"
     )
     db.commit()
 
@@ -102,3 +107,17 @@ def load_user_files(db, uid):
         return user_files
     else:
         return []
+
+
+def add_user_file_association(db, file_to_add_user_to, user_id_to_add):
+    latest_UID = list(db.execute("SELECT count(access_record_id) FROM file_access"))
+    file_id = list(
+        db.execute(
+            f"SELECT file_id from files where file_name='{file_to_add_user_to}' "
+        )
+    )[0][0]
+    new_uid = latest_UID[0][0] + 1
+    db.execute(
+        f"INSERT INTO file_access (access_record_id, file_id, user_id) VALUES({new_uid}, {file_id},{user_id_to_add});"
+    )
+    db.commit()
