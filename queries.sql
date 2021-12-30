@@ -18,3 +18,9 @@ FOREIGN KEY (user_id)
     REFERENCES users (id)
 
 );
+
+
+
+
+DELETE FROM file_access WHERE file_id = file_id; 
+DELETE FROM files WHERE file_id = file_id; 

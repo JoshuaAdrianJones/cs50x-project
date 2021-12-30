@@ -1,34 +1,48 @@
 {% extends "layout.html" %} {% block title %} / {% endblock %} {% block main %}
 
 <div class="container">
-  <h2>Welcome to file uploader</h2>
-
   <br />
-  <h1>Upload new File</h1>
+  <div class="container">
+    <h1>Welcome to file uploader</h1>
+    <h2>Upload new File</h2>
 
-  <h4>you are logged in as {{user_name}}</h4>
+    <h4>You are logged in as: {{user_name}}</h4>
 
-  <h3>Available files</h3>
-  <table class="table">
-    <tr>
-      <th>File Name</th>
-      <th>download</th>
-      <th>manage users</th>
-    </tr>
+    <h3>Available files</h3>
+  </div>
 
-    {%- for file in users_files %}
-    <tr>
-      <td>{{file[1]}}</td>
-      <td>
-        <form method="post" action="download" enctype="multipart/form-data">
-          <input type="hidden" name="file_name" , value="{{file[1]}}" />
-          <input type="submit" value="Download" />
-        </form>
-      </td>
+  <div class="container">
+    <table class="table">
+      <tr>
+        <th>File Name</th>
+        <th>Download</th>
+        <th>Delete</th>
+        <th>Manage Users</th>
+      </tr>
 
-      <td></td>
-    </tr>
-    {%- endfor %}
-  </table>
+      {%- for file in users_files %}
+      <tr>
+        <td>{{file[1]}}</td>
+        <td>
+          <form method="post" action="download" enctype="multipart/form-data">
+            <input type="hidden" name="file_name" , value="{{file[1]}}" />
+            <input type="submit" value="Download" />
+          </form>
+        </td>
+
+        <td>
+          <form method="post" action="delete" enctype="multipart/form-data">
+            <input type="hidden" name="file_name" , value="{{file[1]}}" />
+            <input type="hidden" name="file_id" , value="{{file[0]}}" />
+            <input type="submit" value="Delete" />
+          </form>
+        </td>
+
+        <td></td>
+      </tr>
+      {%- endfor %}
+    </table>
+  </div>
 </div>
+
 {% endblock %}

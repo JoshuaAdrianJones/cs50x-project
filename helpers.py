@@ -87,15 +87,18 @@ def load_user_files(db, uid):
     allowed_file_ids = list(
         db.execute(f"SELECT file_id FROM file_access WHERE user_id={uid}")
     )
-    allowed_file_ids = tuple([row[0] for row in allowed_file_ids])
+    if allowed_file_ids:
+        allowed_file_ids = tuple([row[0] for row in allowed_file_ids])
 
-    if len(allowed_file_ids) > 1:
-        user_files = list(
-            db.execute(f"SELECT * FROM files WHERE file_id IN {allowed_file_ids}")
-        )
+        if len(allowed_file_ids) > 1:
+            user_files = list(
+                db.execute(f"SELECT * FROM files WHERE file_id IN {allowed_file_ids}")
+            )
+        else:
+            user_files = list(
+                db.execute(f"SELECT * FROM files WHERE file_id={allowed_file_ids[0]}")
+            )
+
+        return user_files
     else:
-        user_files = list(
-            db.execute(f"SELECT * FROM files WHERE file_id={allowed_file_ids[0]}")
-        )
-
-    return user_files
+        return []

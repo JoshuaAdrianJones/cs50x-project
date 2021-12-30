@@ -77,7 +77,7 @@ def dashboard():
         )
 
 
-@app.route("/download", methods=["GET", "POST"])
+@app.route("/download", methods=["POST"])
 def get_file():
     try:
         file_name = request.form.get("file_name")
@@ -86,6 +86,22 @@ def get_file():
         )
     except FileNotFoundError:
         abort(404)
+
+
+@app.route("/delete", methods=["POST"])
+def delete_file():
+    file_id = request.form.get("file_id")
+    file_name = request.form.get("file_name")
+
+    # remove from files table
+    db.execute(f"DELETE FROM files WHERE file_id = {file_id}")
+
+    # remove from file_access record table
+    db.execute(f"DELETE FROM file_access WHERE file_id = {file_id}")
+    # remove actual file from server
+    os.remove(f'{app.config["UPLOAD_FOLDER"]}{file_name}')
+    db.commit()
+    return redirect("/")
 
 
 @app.route("/upload", methods=["GET", "POST"])
