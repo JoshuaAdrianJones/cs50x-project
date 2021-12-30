@@ -1,0 +1,27 @@
+{% extends "layout.html" %} {% block title %} Log In {% endblock %} {% block
+main %}
+
+<div class="container">
+  <h1>Add a user to the selected file</h1>
+
+  <h4>Selected file: {{file_name}}</h4>
+
+  <form action="/add_user_submit" method="post">
+    <div class="form-group">
+      {%- for user in available_users %}
+      <input
+        type="radio"
+        name="selected"
+        id="{{user[0]}}"
+        value="{{user[0]}}"
+      />
+      <label for="{{user[0]}}">{{user[0]}}</label>
+      <br />
+      {%- endfor %}
+    </div>
+    <input type="hidden" name="file_name" , value="{{file_name}}" />
+    <button class="btn btn-primary" type="submit">Add User</button>
+  </form>
+</div>
+
+{% endblock %}
